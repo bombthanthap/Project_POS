@@ -15,8 +15,6 @@ import smtplib
 import tkinter as tk
 
 import csv
-
-
 #-------------------- Connect Server and download csv from Server --------------------#
 try:
     ftp = FTP('localhost')
@@ -45,30 +43,38 @@ def qExit():
     root.destroy()
     
 #-------------------- read csv to Server --------------------#
-def readfile_id(id,price):
+def readfile_id(id,price,num):
     try:
         my_file = open('records.csv')
         r = csv.reader(my_file)
         lines = list(r)
         for row in lines:
             if(row[0] == id):
-                row[2] = int(row[2])+int(price)
-                writer = csv.writer(open('records.csv', 'r+',newline = ''))
-                writer.writerows(lines)
-                print("------- Sum success -------")
-                messagebox.showinfo(" Sum Values "," Sum Values Success ")
-                break
-            
-            #else:
-                #print("------- No ID longer -------")
-                #print("------- Plz check ID again -------")
-                #messagebox.showinfo(" Warnning "," No ID longer ")
+                if(row[4] == '0'):
+                    row[2] = int(row[2])+int(price)
+                    writer = csv.writer(open('records.csv', 'r+',newline = ''))
+                    writer.writerows(lines)
+                    print("------- Sum success -------")
+                    messagebox.showinfo(" Sum Values "," Sum Values Success ")
+                    return
+            # edit input carnum if Customer forget a id card
+            # Customer can tell car num to Staff
+            elif(row[1] == num and num != '' ):
+                if(row[4] == '0'):
+                    row[2] = int(row[2])+int(price)
+                    writer = csv.writer(open('records.csv', 'r+',newline = ''))
+                    writer.writerows(lines)
+                    print("------- Sum success -------")
+                    messagebox.showinfo(" Sum Values "," Sum Values Success ")
+                    return
 
         my_file.close()
         
     except Exception as e:
         print(e)
         print("No ID")
+    print('No more car id')
+    messagebox.showerror(" Alert "," No car id  ")
 
 #--------------------  show data in CSV --------------------#    
 def show():
@@ -130,14 +136,6 @@ photo = PhotoImage(file = r"D:\workzone\networkProg\projectPOS\New folder\image\
 
 # Resizing image to fit on button
 photoimage = photo.subsample(20,20)
-
-# here, image option is used to
-# set image on button
-# compound option is used to align
-# image on LEFT side of button
-#Button(root, image = photoimage,compound = LEFT).place(relx = 0.83,rely= 0.8,anchor = 'center')
-
-
 
 #-------------------- HEAD Frame --------------------#
 TopTop = Frame(canvas1, bg = 'black',padx=2, pady=2)
@@ -204,15 +202,10 @@ car_entry.place(relx = 0.6,rely= 0.5585,width=120,height=40,anchor = 'center')
 num_entry.place(relx = 0.6,rely= 0.6585,width=120,height=40,anchor = 'center')
 price_entry.place(relx = 0.6,rely= 0.7585,width=120,height=40,anchor = 'center')
 
-
-
-
-
 ## config btn for sum and update to ftp server
-Button(root,text="Submit",padx=6,pady=6,bd=5,fg="darkgreen",font=('TH Sarabun New',12,'bold'),width=5,bg="limegreen",command=lambda:readfile_id(carid_value.get(),price_value.get())).place(relx = 0.6,rely= 0.9,anchor = 'center')
+Button(root,text="Submit",padx=6,pady=6,bd=5,fg="darkgreen",font=('TH Sarabun New',12,'bold'),width=5,bg="limegreen",command=lambda:readfile_id(carid_value.get(),price_value.get(),carnum_value.get())).place(relx = 0.6,rely= 0.9,anchor = 'center')
 Button(root,text="Upload",padx=6,pady=6,bd=5,fg="royalblue",font=('TH Sarabun New',12,'bold'),width=5,bg="navy" ,command=upload).place(relx = 0.4,rely= 0.9,anchor = 'center')
 btnExit=Button(padx=3,pady=3,bd=3,fg="red",font=('TH Sarabun New',10,'bold'),width=5,text="Exit",bg="lightcoral",command=qExit).place(relx = 0.9,rely= 0.93,anchor = 'center')
-
 
 #------------ Run show csv on start this program ------------#
 show()

@@ -1,6 +1,5 @@
 #postest 1234
 
-
 from tkinter import *
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -29,7 +28,7 @@ def get_time():
     clock.after(200,get_time)
 
 def qExit():
-    root.destroy()
+    return root.destroy()
 
 #-------------------- Variable root for TK --------------------#
 root = Tk()
@@ -86,8 +85,8 @@ get_time()
 ## TIME CURRENT
 t = time.localtime()
 current_time = time.strftime("%H:%M:%S", t)
-#date_time = time.strftime("%d/%m/%Y", t)
-date_time = time.strftime("%Y/%m/%d", t)
+date_time = time.strftime("%d/%m/%Y", t)
+#date_time = time.strftime("%Y-%m-%d", t)
 print(date_time)
 ##print("Current time is: "+current_time)
 print("********************************")
@@ -169,59 +168,61 @@ def readfile(id):
         for row in lines:
             try:
                 if(row[0] == id):
-                    #change status
-                    row[4] = 1
-                    
-                    print('value is : %s  \ntime-in is %s' % (row[2],row[3]))
-                    ## TIME DIFF ##
-                    FMT = '%H:%M:%S'
-                    tdelta = abs(datetime.strptime(current_time, FMT) - datetime.strptime(row[3], FMT))
-                    timedif = tdelta
-                    timedif = str(timedif)
-                    print("Current time is: "+current_time)
-                    print('Time diff : ',tdelta)
-
-                    mint = tdelta.seconds//60
-                    hour = mint//60
-                    if(mint%60 >= 30):
-                        hour += 1
-
-                    #price >=1000 free
-                    if(int(row[2]) >= 1000):
-                        print('value more than 1000 Car parking free')
-                        row[6] = 0
+                    if(row[4] == '0'):
+                        #change status
+                        row[4] = 1
                         
-                    #print 100-500 1hr free
-                    elif(int(row[2]) >= 100 and int(row[2]) <= 500):
-                        print('free 1 hr')
-                        # time > 1 hr u gonna paid
-                        if(hour > 1):
-                            print('Parking fee',(hour-1)*30)
-                            row[6] = (hour-1)*30
-                    elif(int(row[2]) < 100):
-                        print('Parking fee',(hour)*30)
-                        row[6] = (hour)*30
-                    writer = csv.writer(open('records.csv', 'w',newline = ''))
-                    writer.writerows(lines)
-                    
-                    top = Label(root,text ="\nOrder : "+str(id)+"\nDay : "+date_time+"\n Time-Dif : "+timedif+"\nCar number : "+row[1]+"\n Value : "+row[2]+"\n Car fee : "+str(row[6]),font=('arial',20,))
-                    top.place(relx = 0.83,rely= 0.52,anchor = 'center')
-                    return
+                        print('value is : %s' % (row[2]))
+                        ## TIME DIFF ##
+                        FMT = '%H:%M:%S'
+                        tdelta = abs(datetime.strptime(current_time, FMT) - datetime.strptime(row[3], FMT))
+                        timedif = tdelta
+                        timedif = str(timedif)
+                        print('time-in :',row[3])
+                        print("Time-out: "+current_time)
+                        print('Time diff : ',tdelta)
 
+                        mint = tdelta.seconds//60
+                        hour = mint//60
+                        if(mint%60 >= 30):
+                            hour += 1
+
+                        #price >=1000 free
+                        if(int(row[2]) >= 1000):
+                            print('value more than 1000 Car parking free')
+                            row[6] = 0
+                            
+                        #print 100-500 1hr free
+                        elif(int(row[2]) >= 100):
+                            print('free 1 hr')
+                            # time > 1 hr u gonna paid
+                            if(hour > 1):
+                                print('Parking fee',(hour-1)*30)
+                                row[6] = (hour-1)*30
+                        elif(int(row[2]) < 100):
+                            print('Parking fee',(hour)*30)
+                            row[6] = (hour)*30
+                        writer = csv.writer(open('records.csv', 'w',newline = ''))
+                        writer.writerows(lines)
+                        
+                        top = Label(root,text ="\nOrder : "+str(id)+"\nDay : "+date_time+"\n Time-Dif : "+timedif+"\nCar number : "+row[1]+"\n Value : "+row[2]+"\n Car fee : "+str(row[6]),font=('arial',20,))
+                        top.place(relx = 0.83,rely= 0.52,anchor = 'center')
+                        return
+                    else:
+                        print('No more car id')
+                        messagebox.showinfo(" Alert "," No car id  ")
+                        break
             except Exception as e:
                 print(e)
-        
-        
-
     except Exception as e:
         print(e)
         print("No file")
         sys.exit(1)
-    my_file.close()
-    filename = 'records.csv'
-    ftp.storbinary('STOR '+filename,open(filename,'rb'))
-
     
+    my_file.close()
+##    filename = 'records.csv'
+##    ftp.storbinary('STOR '+filename,open(filename,'rb'))
+
     
 #--------------------  write file to FTP SERVER --------------------#    
 def upload():
@@ -235,8 +236,6 @@ def upload():
         print('error upload')
         print(e)
    
-
-    
 def read():
     try:
         f = open('records.csv')
@@ -266,10 +265,14 @@ def enteroutput():
     car_entry.place(relx = 0.55,rely= 0.55,width=120,height=40,anchor = 'center')
     num_entry.place(relx = 0.55,rely= 0.65,width=120,height=40,anchor = 'center')
 
+    print('****************************************************************************')
+    print("Enter output fuction")
+    read()
+
     Button(root,text="Submit", bd = 8,padx=6,pady=6,fg="darkgreen",font=('TH Sarabun New',12,'bold'),width=5,bg="limegreen",command=lambda:readfile(carid_value.get())).place(relx = 0.5,rely= 0.78,anchor = 'center')
     Button(root,text="Upload",padx=6,pady=6,bd=8,fg="royalblue",font=('TH Sarabun New',12,'bold'),width=5,bg="navy" ,command=upload).place(relx = 0.5,rely= 0.88,anchor = 'center')
 
-    print("Enter output fuction")
+    
 
 def enterinput():
     print("Current Time =", current_time)
@@ -287,13 +290,15 @@ def enterinput():
     ## pack Entries 
     num_entry.place(relx = 0.55,rely= 0.65,anchor = 'center',width=120,height=40)
 
-    Button(root,text="Submit", bd = 8,padx=6,pady=6,fg="darkgreen",font=('TH Sarabun New',12,'bold'),width=5,bg="limegreen" ,command=getvals).place(relx = 0.5,rely= 0.78,anchor = 'center')
-
+    print('****************************************************************************')
     print("Enter input fuction")
+    read()
+
+    Button(root,text="Submit", bd = 8,padx=6,pady=6,fg="darkgreen",font=('TH Sarabun New',12,'bold'),width=5,bg="limegreen" ,command=getvals).place(relx = 0.5,rely= 0.78,anchor = 'center')
 
 def result():
     #current_time = time.strftime("%H:%M:%S", t)
-    #date_time = time.strftime("%d/%m/%Y", t)
+    date_time2 = datetime.now()
 
     num_in = 0
     num_out = 0
@@ -303,20 +308,28 @@ def result():
         my_file = open('records.csv')
         r = csv.reader(my_file)
         for row in r:
-            if row[5] == date_time:
+            b=datetime.strptime(row[5], '%d/%m/%Y')
+##            print(date_time2)
+##            print(b)
+            if (b.day==date_time2.day and b.month==date_time2.month and b.year==date_time2.year):
+                #print(date_time2.day)
+                #print(b.day)
                 num_in+=1
                 price += int(row[6])
                 if row[4] == "1":
                     num_out+=1
         my_file.close()
     except Exception as e:
-        #print(e)
+        print(e)
+        print('error fuc result')
         print('Not file CSV yet')
-    
-    print(num_in)
-    print(num_out)
-    print(price)
-    print(date_time)
+        
+    print('========================================')
+    print("Car in : ",num_in)
+    print("Car out : ",num_out)
+    print("Sum of value : ",price)
+    print("Current day : "+date_time)
+    print('========================================')
     
     date = date_time.replace("/","-")
     file_name = "Report_" + date
@@ -327,16 +340,20 @@ def result():
     name.write("รวมค่าบริการจอดรถทั้งหมด " + str(price) + " บาท" +"\n")
     name.close()
 
-    # local file wat want to upload
-    with open("%s.txt" %(file_name), "rb") as file:
-        # use FTP's STOR command to upload this file
-        ftp.storbinary(f"STOR {file_name}.txt", file)
+    try:
+        # local file wat want to upload
+        with open("%s.txt" %(file_name), "rb") as file:
+            # use FTP's STOR command to upload this file
+            ftp.storbinary(f"STOR {file_name}.txt", file)
 
-    print(" Export CSV "+date+" success")
-    messagebox.showinfo(" Report Car parking "," Insert Report Success ")
+        print(" Export CSV "+date+" success")
+        messagebox.showinfo(" Report Car parking "," Insert Report Success ")
 
-    print("Export file %s success" %(file_name))
-
+        print("Export file %s success" %(file_name))
+    except Exception as e:
+        print(e)
+        print('Cant send file ')
+        return 0
     ###send mail###
     try:
         input = open("data.txt")
@@ -348,19 +365,28 @@ def result():
     try:
         try:
             name = open("%s.txt" %(file_name), "r", encoding = "utf-8")
+            
         except:
             print("File not found")
 
         mail_content = name.read()
         name.close()
-
+        
         #Setup the MIME
         message = MIMEMultipart()
         message['From'] = sender_address
         message['To'] = receiver_address
         message['Subject'] = file_name
-
         message.attach(MIMEText(mail_content, 'plain'))
+
+        #Sent the csv file 
+        file_csv = 'records.csv'
+        attachment = open(file_csv, "rb")
+        p = MIMEBase('application', 'octet-stream')
+        p.set_payload((attachment).read())
+        encoders.encode_base64(p)
+        p.add_header('Content-Disposition', "attachment; filename= %s" % file_csv)
+        message.attach(p)
 
         #Create SMTP session for sending the mail
         session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
@@ -370,54 +396,22 @@ def result():
         session.sendmail(sender_address, receiver_address, text)
         session.quit()
         print('Mail Sent')
-    except:
+    except Exception as e:
+        print(e)
+        print('error sent mail')
         print("Can't send mail")
    
     print("*********************************")
 
-
-# no more use
-def send_mail():
-    date_time = time.strftime("%d/%m/%Y", t)
-    date = date_time.replace("/","-")
-    file_name = "Report_" + date
-    # mail addr
-    sender_address = 'thanthapsuksanit@gmail.com'
-    sender_pass = '0889323786'
-    receiver_address = 'thanthapsuksanit@gmail.com'
-    mail_content = '''Hello,This is a test mail.
-    In this mail we are sending some attachments.
-    The mail is sent using Python SMTP library.
-    Thank You
-    '''
-    try:
-        #Setup the MIME
-        message = MIMEMultipart()
-        message['From'] = sender_address
-        message['To'] = receiver_address
-        message['Subject'] = 'A test mail sent by Python. It has an attachment.'
-        #The subject line
-        #The body and the attachments for the mail
-        message.attach(MIMEText(mail_content, 'plain'))
-        attach_file_name = ("%s.txt" %(file_name))
-        attach_file = open(attach_file_name, 'rb') # Open the file as binary mode
-        payload = MIMEBase('application', 'octate-stream')
-        payload.set_payload((attach_file).read())
-        encoders.encode_base64(payload) #encode the attachment
-        #add payload header with filename
-        payload.add_header('Content-Decomposition', 'attachment', filename=attach_file_name)
-        message.attach(payload)
-        #Create SMTP session for sending the mail
-        session = smtplib.SMTP('smtp.gmail.com', 587) #use gmail with port
-        session.starttls() #enable security
-        session.login(sender_address, sender_pass) #login with mail_id and password
-        text = message.as_string()
-        session.sendmail(sender_address, receiver_address, text)
-        session.quit()
-        print('Mail Sent')
-    except:
-        print('error mail')
-  
+def msgbox():
+    
+    ans = messagebox.askquestion("Confirm","Are you sure?")  
+    if ans == 'yes':
+        print('send to def result ')
+        result()
+    else:
+        print('Exit')
+    
 #-------------------- VARIABLE ENTRIES --------------------#
 carid_value = StringVar()
 carnum_value = StringVar()
@@ -450,16 +444,11 @@ button_in.place(x=100,y=235)
 button_out = Button(root, bd=6,command=enteroutput,padx=75,pady=50,background="lightcoral",relief=RIDGE,image = photooutimage,compound = LEFT)
 button_out.place(x=100,y=375)
 
-button_sum = Button(root,text='SUM', bd=6,command=result,padx=30,pady=20,background="navajowhite",relief=RIDGE,image = photoallimage,compound = LEFT)
+button_sum = Button(root,text='SUM', bd=6,command=msgbox,padx=30,pady=20,background="navajowhite",relief=RIDGE,image = photoallimage,compound = LEFT)
 button_sum.place(x=100,y=520)
 
-btnExit=Button(padx=3,pady=3,bd=5,fg="red",font=('TH Sarabun New',12,'bold'),width=5,text="Exit",bg="lightcoral",command=qExit).place(relx = 0.82,rely= 0.9,anchor = 'center')
 
-try:
-    read()
-except:
-    pass
-    
+btnExit=Button(padx=3,pady=3,bd=5,fg="red",font=('TH Sarabun New',12,'bold'),width=5,text="Exit",bg="lightcoral",command=qExit).place(relx = 0.82,rely= 0.9,anchor = 'center')
 
 root.resizable(width=False, height=False)
 root.mainloop()
